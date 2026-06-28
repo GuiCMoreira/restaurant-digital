@@ -1,12 +1,14 @@
+export interface OrderItem {
+  id: string
+  name: string
+  quantity: number
+  price: number
+}
+
 export interface OrderCreatedEvent {
   orderId: string
   tableNumber: number
-  items: Array<{
-    id: string
-    name: string
-    quantity: number
-    price: number
-  }>
+  items: OrderItem[]
   totalAmount: number
   createdAt: string
 }
@@ -14,6 +16,7 @@ export interface OrderCreatedEvent {
 export interface OrderConfirmedEvent {
   orderId: string
   tableNumber: number
+  items: OrderItem[]
   estimatedTime: number
 }
 

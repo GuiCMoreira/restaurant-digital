@@ -79,7 +79,7 @@ PORT=3004
 - [x] docker-compose.yml configurado
 - [x] shared-types com contratos das filas
 - [x] order-service
-- [ ] kitchen-service
+- [x] kitchen-service
 - [ ] sale-service
 - [ ] notification-service
 - [ ] apps/web

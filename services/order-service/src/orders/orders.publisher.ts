@@ -33,6 +33,7 @@ export class OrdersPublisher {
     const event: OrderConfirmedEvent = {
       orderId: order.id,
       tableNumber: order.table_number,
+      items: order.items,
       estimatedTime: ESTIMATED_PREPARATION_TIME_MINUTES,
     };
 

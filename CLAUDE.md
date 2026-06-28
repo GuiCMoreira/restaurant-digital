@@ -78,7 +78,7 @@ PORT=3004
 - [x] Estrutura do monorepo criada
 - [x] docker-compose.yml configurado
 - [x] shared-types com contratos das filas
-- [ ] order-service
+- [x] order-service
 - [ ] kitchen-service
 - [ ] sale-service
 - [ ] notification-service

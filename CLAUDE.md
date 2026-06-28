@@ -81,7 +81,7 @@ PORT=3004
 - [x] order-service
 - [x] kitchen-service
 - [x] sale-service
-- [ ] notification-service
+- [x] notification-service
 - [ ] apps/web
 - [ ] apps/kitchen
 - [ ] apps/waiter

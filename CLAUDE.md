@@ -80,7 +80,7 @@ PORT=3004
 - [x] shared-types com contratos das filas
 - [x] order-service
 - [x] kitchen-service
-- [ ] sale-service
+- [x] sale-service
 - [ ] notification-service
 - [ ] apps/web
 - [ ] apps/kitchen

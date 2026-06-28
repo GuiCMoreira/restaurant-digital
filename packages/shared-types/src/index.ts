@@ -1,0 +1,49 @@
+export interface OrderCreatedEvent {
+  orderId: string
+  tableNumber: number
+  items: Array<{
+    id: string
+    name: string
+    quantity: number
+    price: number
+  }>
+  totalAmount: number
+  createdAt: string
+}
+
+export interface OrderConfirmedEvent {
+  orderId: string
+  tableNumber: number
+  estimatedTime: number
+}
+
+export interface KitchenQueuedEvent {
+  orderId: string
+  tableNumber: number
+  items: Array<{
+    name: string
+    quantity: number
+  }>
+}
+
+export interface KitchenStatusUpdatedEvent {
+  orderId: string
+  tableNumber: number
+  status: 'preparing' | 'ready'
+  updatedAt: string
+}
+
+export interface SaleClosedEvent {
+  tableNumber: number
+  totalAmount: number
+  closedAt: string
+}
+
+export type RabbitMQQueues = {
+  ORDER_CREATED: 'order.created'
+  ORDER_CONFIRMED: 'order.confirmed'
+  KITCHEN_QUEUED: 'kitchen.queued'
+  KITCHEN_STATUS_UPDATED: 'kitchen.status_updated'
+  NOTIFY_TABLE: 'notify.table'
+  SALE_CLOSED: 'sale.closed'
+}

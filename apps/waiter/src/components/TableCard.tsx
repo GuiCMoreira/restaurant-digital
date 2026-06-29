@@ -7,9 +7,14 @@ import { formatCurrency, formatElapsed } from "@/lib/utils";
 interface TableCardProps {
   sale: SaleWithItems;
   billRequested?: boolean;
+  hasActiveOrders?: boolean;
 }
 
-export default function TableCard({ sale, billRequested = false }: TableCardProps) {
+export default function TableCard({
+  sale,
+  billRequested = false,
+  hasActiveOrders = false,
+}: TableCardProps) {
   const router = useRouter();
 
   const itemCount = sale.items.reduce(
@@ -28,10 +33,19 @@ export default function TableCard({ sale, billRequested = false }: TableCardProp
         <span className="rounded-full bg-mist px-3 py-1 text-xs font-bold text-forest">Aberta</span>
       </div>
 
-      {billRequested && (
-        <span className="w-fit rounded-full bg-spice px-3 py-1 text-xs font-bold text-linen">
-          Conta solicitada!
-        </span>
+      {(billRequested || hasActiveOrders) && (
+        <div className="flex flex-wrap gap-2">
+          {billRequested && (
+            <span className="w-fit rounded-full bg-spice px-3 py-1 text-xs font-bold text-linen">
+              Conta solicitada!
+            </span>
+          )}
+          {hasActiveOrders && (
+            <span className="w-fit rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">
+              Pedidos em preparo
+            </span>
+          )}
+        </div>
       )}
 
       <span className="font-serif text-xl font-bold text-forest">

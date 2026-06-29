@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 import { useCart, useOrders } from "@/hooks/useCart";
+import { useSocketContext } from "@/providers/SocketProvider";
 import { formatCurrency } from "@/lib/utils";
 import QuantityControl from "@/components/QuantityControl";
 
@@ -12,8 +13,24 @@ export default function CarrinhoPage({ params }: { params: { numero: string } })
   const router = useRouter();
   const { items, removeItem, updateQuantity, clearCart, total } = useCart(numero);
   const { addOrder } = useOrders(numero);
+  const { billRequested } = useSocketContext();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!billRequested) return;
+    router.replace(`/mesa/${numero}/pedidos?notice=bill_requested`);
+  }, [billRequested, numero, router]);
+
+  if (billRequested) {
+    return (
+      <main className="mx-auto max-w-2xl px-4 pb-8 pt-6 text-center">
+        <p className="mt-16 text-muted">
+          Conta já solicitada — não é possível fazer novos pedidos.
+        </p>
+      </main>
+    );
+  }
 
   async function handleConfirm() {
     setSubmitting(true);

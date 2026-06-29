@@ -1,7 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { OrderConfirmedEvent, OrderItem } from '@restaurant/shared-types';
+
+const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL ?? 'http://localhost:3001';
+const ACTIVE_ORDER_STATUSES = ['pending', 'preparing'];
+
+interface OrderStatusRecord {
+  status: string;
+}
 
 export interface SaleRecord {
   id: string;
@@ -166,6 +177,8 @@ export class SalesService {
       throw new NotFoundException(`No open sale found for table ${tableNumber}`);
     }
 
+    await this.ensureNoActiveKitchenOrders(tableNumber);
+
     const { data: closedSale, error: updateError } = await this.supabase
       .from('sales')
       .update({ status: 'closed', closed_at: new Date().toISOString() })
@@ -195,6 +208,29 @@ export class SalesService {
     return Promise.all(
       (sales as SaleRecord[]).map((sale) => this.attachItems(sale)),
     );
+  }
+
+  private async ensureNoActiveKitchenOrders(tableNumber: number): Promise<void> {
+    const response = await fetch(
+      `${ORDER_SERVICE_URL}/orders/table/${tableNumber}`,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to check active orders for table ${tableNumber}: order-service respondeu ${response.status}`,
+      );
+    }
+
+    const orders = (await response.json()) as OrderStatusRecord[];
+    const hasActiveOrders = orders.some((order) =>
+      ACTIVE_ORDER_STATUSES.includes(order.status),
+    );
+
+    if (hasActiveOrders) {
+      throw new BadRequestException(
+        'Existem pedidos em aberto na cozinha para esta mesa. Aguarde todos os pedidos serem finalizados.',
+      );
+    }
   }
 
   private async attachItems(sale: SaleRecord): Promise<SaleWithItems> {

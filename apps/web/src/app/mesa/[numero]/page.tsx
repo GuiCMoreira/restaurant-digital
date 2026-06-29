@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { menu } from "@/data/menu";
 import { useCart, useOrders } from "@/hooks/useCart";
+import { useSocketContext } from "@/providers/SocketProvider";
 import CategoryFilter from "@/components/CategoryFilter";
 import MenuItemCard from "@/components/MenuItemCard";
 import CartButton from "@/components/CartButton";
@@ -21,6 +22,7 @@ export default function CardapioPage({ params }: { params: { numero: string } })
   const [activeCategory, setActiveCategory] = useState(menu[0].id);
   const { items, addItem, updateQuantity, total, totalItems } = useCart(numero);
   const { orders } = useOrders(numero);
+  const { billRequested } = useSocketContext();
 
   const category = menu.find((c) => c.id === activeCategory) ?? menu[0];
 
@@ -49,6 +51,12 @@ export default function CardapioPage({ params }: { params: { numero: string } })
 
   return (
     <main className="mx-auto max-w-4xl px-4 pb-28 pt-6">
+      {billRequested && (
+        <div className="mb-4 rounded-lg bg-spice px-4 py-3 text-sm font-medium text-linen">
+          Conta solicitada — novos pedidos não são permitidos
+        </div>
+      )}
+
       {orders.length > 0 && (
         <Link
           href={`/mesa/${numero}/pedidos`}
@@ -76,12 +84,15 @@ export default function CardapioPage({ params }: { params: { numero: string } })
               onAdd={() => addItem(item)}
               onIncrement={() => (quantity === 0 ? addItem(item) : updateQuantity(item.id, quantity + 1))}
               onDecrement={() => updateQuantity(item.id, quantity - 1)}
+              disabled={billRequested}
             />
           );
         })}
       </div>
 
-      <CartButton tableNumber={numero} totalItems={totalItems} total={total} />
+      {!billRequested && (
+        <CartButton tableNumber={numero} totalItems={totalItems} total={total} />
+      )}
     </main>
   );
 }

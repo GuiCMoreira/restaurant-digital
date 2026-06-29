@@ -52,4 +52,8 @@ export class NotificationsGateway {
   notifyWaiter(event: string, data: unknown): void {
     this.server.to('waiter').emit(event, data);
   }
+
+  broadcastSaleClosed(tableNumber: number): void {
+    this.server.emit('sale:closed:broadcast', { tableNumber });
+  }
 }

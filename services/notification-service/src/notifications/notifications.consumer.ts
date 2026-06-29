@@ -69,5 +69,6 @@ export class NotificationsConsumer {
       'sale:closed',
       event,
     );
+    this.notificationsGateway.broadcastSaleClosed(Number(event.tableNumber));
   }
 }

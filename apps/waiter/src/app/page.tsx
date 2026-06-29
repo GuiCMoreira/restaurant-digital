@@ -7,6 +7,8 @@ import ConnectionStatus from "@/components/ConnectionStatus";
 import { useWaiterSocket } from "@/hooks/useWaiterSocket";
 import type { SaleWithItems } from "@/types/sale";
 
+const ACTIVE_ORDER_STATUSES = ["pending", "preparing"];
+
 function playNotificationBeep() {
   try {
     const AudioContextClass =
@@ -30,10 +32,22 @@ function playNotificationBeep() {
   }
 }
 
+async function hasActiveKitchenOrders(tableNumber: number): Promise<boolean> {
+  try {
+    const response = await fetch(`http://localhost:3001/orders/table/${tableNumber}`);
+    if (!response.ok) return false;
+    const orders: Array<{ status: string }> = await response.json();
+    return orders.some((order) => ACTIVE_ORDER_STATUSES.includes(order.status));
+  } catch {
+    return false;
+  }
+}
+
 export default function WaiterHomePage() {
   const [sales, setSales] = useState<SaleWithItems[]>([]);
   const [loading, setLoading] = useState(true);
-  const [billRequests, setBillRequests] = useState<Set<number>>(new Set());
+  const [billRequestedTables, setBillRequestedTables] = useState<Record<number, boolean>>({});
+  const [activeKitchenTables, setActiveKitchenTables] = useState<Set<number>>(new Set());
 
   const loadSales = useCallback(async () => {
     try {
@@ -41,10 +55,16 @@ export default function WaiterHomePage() {
       if (!response.ok) return;
       const data: SaleWithItems[] = await response.json();
       setSales(data);
-      setBillRequests((current) => {
-        const openTables = new Set(data.map((sale) => sale.table_number));
-        return new Set(Array.from(current).filter((tableNumber) => openTables.has(tableNumber)));
-      });
+
+      const activeChecks = await Promise.all(
+        data.map(async (sale) => ({
+          tableNumber: sale.table_number,
+          active: await hasActiveKitchenOrders(sale.table_number),
+        }))
+      );
+      setActiveKitchenTables(
+        new Set(activeChecks.filter((check) => check.active).map((check) => check.tableNumber))
+      );
     } catch {
       // sale-service indisponível — mantém a última lista carregada
     } finally {
@@ -59,10 +79,18 @@ export default function WaiterHomePage() {
   }, [loadSales]);
 
   const { connected } = useWaiterSocket({
-    onSaleClosed: () => loadSales(),
+    onSaleClosed: (event) => {
+      setBillRequestedTables((prev) => {
+        const next = { ...prev };
+        delete next[event.tableNumber];
+        return next;
+      });
+      loadSales();
+    },
     onNewSale: () => loadSales(),
     onBillRequested: (event) => {
-      setBillRequests((current) => new Set(current).add(event.tableNumber));
+      const { tableNumber } = event;
+      setBillRequestedTables((prev) => ({ ...prev, [tableNumber]: true }));
       playNotificationBeep();
     },
   });
@@ -94,7 +122,8 @@ export default function WaiterHomePage() {
               <TableCard
                 key={sale.id}
                 sale={sale}
-                billRequested={billRequests.has(sale.table_number)}
+                billRequested={billRequestedTables[sale.table_number] ?? false}
+                hasActiveOrders={activeKitchenTables.has(sale.table_number)}
               />
             ))}
           </div>

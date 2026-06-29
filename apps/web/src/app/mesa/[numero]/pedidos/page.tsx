@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useOrders, type OrderStatus } from "@/hooks/useCart";
 import { useSocketContext } from "@/providers/SocketProvider";
 import { formatCurrency, formatOrderTime } from "@/lib/utils";
@@ -21,13 +21,20 @@ const STATUS_CLASS: Record<OrderStatus, string> = {
 export default function PedidosPage({ params }: { params: { numero: string } }) {
   const { numero } = params;
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { orders, totalAllOrders } = useOrders(numero);
-  const { requestBill } = useSocketContext();
-  const [billRequested, setBillRequested] = useState(false);
+  const { requestBill, billRequested } = useSocketContext();
+  const [showNotice, setShowNotice] = useState(searchParams.get("notice") === "bill_requested");
+
+  useEffect(() => {
+    if (searchParams.get("notice") !== "bill_requested") return;
+    router.replace(`/mesa/${numero}/pedidos`);
+  }, [searchParams, numero, router]);
+
+  const allReady = orders.length > 0 && orders.every((order) => order.status === "ready");
 
   function handleRequestBill() {
     requestBill();
-    setBillRequested(true);
   }
 
   const sortedOrders = [...orders].sort(
@@ -37,6 +44,15 @@ export default function PedidosPage({ params }: { params: { numero: string } }) 
   return (
     <main className="mx-auto max-w-2xl px-4 pb-8 pt-6">
       <h1 className="mb-6 font-serif text-2xl text-forest">Seus pedidos — Mesa {numero}</h1>
+
+      {showNotice && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-lg bg-spice px-4 py-3 text-sm font-medium text-linen">
+          <span>Conta já solicitada — não é possível fazer novos pedidos</span>
+          <button type="button" onClick={() => setShowNotice(false)} aria-label="Fechar aviso">
+            ✕
+          </button>
+        </div>
+      )}
 
       {sortedOrders.length === 0 ? (
         <p className="text-muted">Você ainda não fez nenhum pedido nesta mesa.</p>
@@ -82,26 +98,37 @@ export default function PedidosPage({ params }: { params: { numero: string } }) 
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => router.push(`/mesa/${numero}`)}
-        className="mt-6 w-full rounded-lg bg-forest py-3 text-center font-medium text-linen transition-colors hover:bg-fern"
-      >
-        ＋ Adicionar mais itens
-      </button>
+      {!billRequested && (
+        <button
+          type="button"
+          onClick={() => router.push(`/mesa/${numero}`)}
+          className="mt-6 w-full rounded-lg bg-forest py-3 text-center font-medium text-linen transition-colors hover:bg-fern"
+        >
+          ＋ Adicionar mais itens
+        </button>
+      )}
 
       {billRequested ? (
         <p className="mt-3 w-full rounded-lg bg-mist py-3 text-center font-medium text-forest">
           Garçom notificado! Aguarde um momento.
         </p>
       ) : (
-        <button
-          type="button"
-          onClick={handleRequestBill}
-          className="mt-3 w-full rounded-lg bg-spice py-3 font-medium text-linen transition-colors hover:bg-spice/90"
-        >
-          Chamar garçom para a conta
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={handleRequestBill}
+            disabled={!allReady}
+            title={!allReady ? "Aguarde seus pedidos ficarem prontos" : undefined}
+            className="mt-3 w-full rounded-lg bg-spice py-3 font-medium text-linen transition-colors hover:bg-spice/90 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
+          >
+            Chamar garçom para a conta
+          </button>
+          {!allReady && (
+            <p className="mt-2 text-center text-sm text-muted">
+              Aguarde seus pedidos ficarem prontos
+            </p>
+          )}
+        </>
       )}
     </main>
   );

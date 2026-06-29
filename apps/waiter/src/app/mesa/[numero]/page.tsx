@@ -15,6 +15,7 @@ export default function MesaComandaPage({ params }: { params: { numero: string }
   const [sale, setSale] = useState<SaleWithItems | null>(null);
   const [loading, setLoading] = useState(true);
   const [closing, setClosing] = useState(false);
+  const [closeError, setCloseError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadSale() {
@@ -42,12 +43,21 @@ export default function MesaComandaPage({ params }: { params: { numero: string }
 
   async function handleCloseBill() {
     setClosing(true);
+    setCloseError(null);
     try {
       const response = await fetch(`http://localhost:3003/sales/table/${numero}/close`, {
         method: "POST",
       });
+
       if (response.ok) {
         router.push("/");
+        return;
+      }
+
+      if (response.status === 400) {
+        setCloseError(
+          "Não é possível fechar a conta — há pedidos em preparo na cozinha. Aguarde todos os pedidos serem finalizados."
+        );
       }
     } finally {
       setClosing(false);
@@ -81,6 +91,13 @@ export default function MesaComandaPage({ params }: { params: { numero: string }
         ) : (
           <>
             <SaleDetail sale={sale} />
+
+            {closeError && (
+              <p className="mt-4 rounded-lg bg-spice/10 px-4 py-3 text-sm font-medium text-spice">
+                {closeError}
+              </p>
+            )}
+
             <button
               type="button"
               onClick={handleCloseBill}

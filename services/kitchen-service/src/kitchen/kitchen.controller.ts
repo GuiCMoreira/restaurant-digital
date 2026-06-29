@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common';
 import { KitchenGateway } from './kitchen.gateway';
 import { KitchenPublisher } from './kitchen.publisher';
 import { KitchenService } from './kitchen.service';
@@ -26,10 +26,18 @@ export class KitchenController {
     await this.kitchenPublisher.publishStatusUpdated(
       order.orderId,
       order.tableNumber,
-      order.status,
+      status,
     );
     await this.kitchenGateway.emitQueueUpdate();
 
     return order;
+  }
+
+  @Delete('queue/finished')
+  async clearFinished() {
+    const cleared = await this.kitchenService.clearFinished();
+    await this.kitchenGateway.emitQueueUpdate();
+
+    return { cleared };
   }
 }

@@ -14,6 +14,7 @@ const config: Config = {
         mist: "#D8F3DC",
         linen: "#F8F5F0",
         spice: "#B5451B",
+        muted: "#6B7280",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "sans-serif"],

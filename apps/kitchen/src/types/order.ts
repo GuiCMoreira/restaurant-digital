@@ -1,4 +1,4 @@
-export type KitchenOrderStatus = "preparing" | "ready";
+export type KitchenOrderStatus = "pending" | "preparing" | "ready";
 
 export interface KitchenOrderItem {
   name: string;
@@ -11,4 +11,5 @@ export interface KitchenOrder {
   items: KitchenOrderItem[];
   status: KitchenOrderStatus;
   createdAt: string;
+  updatedAt: string;
 }

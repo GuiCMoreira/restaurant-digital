@@ -7,7 +7,7 @@ export interface KitchenOrderRecord {
   orderId: string;
   tableNumber: number;
   items: Array<{ name: string; quantity: number }>;
-  status: 'preparing' | 'ready';
+  status: 'pending' | 'preparing' | 'ready';
   updatedAt: string;
 }
 
@@ -29,7 +29,7 @@ export class KitchenService {
       orderId: event.orderId,
       tableNumber: event.tableNumber,
       items: event.items,
-      status: 'preparing',
+      status: 'pending',
       updatedAt: new Date().toISOString(),
     };
 
@@ -54,7 +54,7 @@ export class KitchenService {
 
   async updateStatus(
     orderId: string,
-    status: 'preparing' | 'ready',
+    status: 'pending' | 'preparing' | 'ready',
   ): Promise<KitchenOrderRecord> {
     const raw = await this.redis.get(orderKey(orderId));
     if (!raw) {
@@ -75,5 +75,28 @@ export class KitchenService {
   async removeFromQueue(orderId: string): Promise<void> {
     await this.redis.lrem(QUEUE_KEY, 0, orderId);
     await this.redis.del(orderKey(orderId));
+  }
+
+  async clearFinished(): Promise<number> {
+    const orderIds = await this.redis.lrange(QUEUE_KEY, 0, -1);
+    if (orderIds.length === 0) {
+      return 0;
+    }
+
+    const rawOrders = await this.redis.mget(...orderIds.map(orderKey));
+
+    let cleared = 0;
+    for (let i = 0; i < orderIds.length; i++) {
+      const raw = rawOrders[i];
+      if (!raw) continue;
+
+      const order = JSON.parse(raw) as KitchenOrderRecord;
+      if (order.status === 'ready') {
+        await this.removeFromQueue(orderIds[i]);
+        cleared += 1;
+      }
+    }
+
+    return cleared;
   }
 }

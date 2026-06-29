@@ -4,10 +4,12 @@ import ConnectionStatus from "./ConnectionStatus";
 
 interface HeaderProps {
   connected: boolean;
-  activeCount: number;
+  receivedCount: number;
+  preparingCount: number;
+  readyCount: number;
 }
 
-export default function Header({ connected, activeCount }: HeaderProps) {
+export default function Header({ connected, receivedCount, preparingCount, readyCount }: HeaderProps) {
   return (
     <header className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-6 py-4">
       <div className="flex items-center gap-3">
@@ -16,7 +18,7 @@ export default function Header({ connected, activeCount }: HeaderProps) {
       </div>
       <div className="flex items-center gap-5">
         <span className="text-sm font-medium text-mist">
-          {activeCount} {activeCount === 1 ? "pedido ativo" : "pedidos ativos"}
+          {receivedCount} recebidos · {preparingCount} em preparo · {readyCount} finalizados
         </span>
         <ConnectionStatus connected={connected} />
       </div>

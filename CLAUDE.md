@@ -84,5 +84,5 @@ PORT=3004
 - [x] notification-service
 - [x] apps/web
 - [x] apps/kitchen
-- [ ] apps/waiter
+- [x] apps/waiter
 - [ ] deploy

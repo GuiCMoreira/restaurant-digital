@@ -40,6 +40,7 @@ export interface SaleClosedEvent {
   tableNumber: number
   totalAmount: number
   closedAt: string
+  orderIds: string[]
 }
 
 export interface SaleUpdatedEvent {

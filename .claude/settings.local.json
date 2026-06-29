@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir \"C:\\\\Users\\\\mahco\\\\.claude\\\\projects\\\\c--Users-mahco-OneDrive-Documentos-GitHub-restaurant-digital\\\\memory\\\\\" 2>&1)"
+    ]
+  }
+}

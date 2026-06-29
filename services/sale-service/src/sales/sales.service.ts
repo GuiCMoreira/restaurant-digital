@@ -21,6 +21,8 @@ export interface SaleRecord {
   total_amount: number;
   created_at: string;
   closed_at: string | null;
+  bill_requested: boolean;
+  bill_requested_at: string | null;
 }
 
 export interface SaleItemRecord {
@@ -44,8 +46,14 @@ export interface SaleWithItems extends SaleRecord {
 //   status TEXT NOT NULL DEFAULT 'open',
 //   total_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
 //   created_at TIMESTAMPTZ DEFAULT NOW(),
-//   closed_at TIMESTAMPTZ
+//   closed_at TIMESTAMPTZ,
+//   bill_requested BOOLEAN DEFAULT FALSE,
+//   bill_requested_at TIMESTAMPTZ
 // );
+//
+// ALTER TABLE sales
+//   ADD COLUMN IF NOT EXISTS bill_requested BOOLEAN DEFAULT FALSE,
+//   ADD COLUMN IF NOT EXISTS bill_requested_at TIMESTAMPTZ;
 //
 // CREATE TABLE sale_items (
 //   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -159,7 +167,7 @@ export class SalesService {
     return this.attachItems(sale as SaleRecord);
   }
 
-  async closeSale(tableNumber: number): Promise<SaleRecord> {
+  async closeSale(tableNumber: number): Promise<SaleWithItems> {
     const { data: openSale, error: findError } = await this.supabase
       .from('sales')
       .select('*')
@@ -179,6 +187,17 @@ export class SalesService {
 
     await this.ensureNoActiveKitchenOrders(tableNumber);
 
+    const { data: saleItems, error: itemsError } = await this.supabase
+      .from('sale_items')
+      .select('*')
+      .eq('sale_id', openSale.id);
+
+    if (itemsError) {
+      throw new Error(
+        `Failed to fetch items for sale ${openSale.id}: ${itemsError.message}`,
+      );
+    }
+
     const { data: closedSale, error: updateError } = await this.supabase
       .from('sales')
       .update({ status: 'closed', closed_at: new Date().toISOString() })
@@ -192,7 +211,47 @@ export class SalesService {
       );
     }
 
-    return closedSale as SaleRecord;
+    return {
+      ...(closedSale as SaleRecord),
+      items: (saleItems ?? []) as SaleItemRecord[],
+    };
+  }
+
+  async requestBill(tableNumber: number): Promise<SaleRecord> {
+    const { data: openSale, error: findError } = await this.supabase
+      .from('sales')
+      .select('*')
+      .eq('table_number', tableNumber)
+      .eq('status', 'open')
+      .maybeSingle();
+
+    if (findError) {
+      throw new Error(
+        `Failed to find open sale for table ${tableNumber}: ${findError.message}`,
+      );
+    }
+
+    if (!openSale) {
+      throw new NotFoundException(`No open sale found for table ${tableNumber}`);
+    }
+
+    const { data: updatedSale, error: updateError } = await this.supabase
+      .from('sales')
+      .update({
+        bill_requested: true,
+        bill_requested_at: new Date().toISOString(),
+      })
+      .eq('id', openSale.id)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw new Error(
+        `Failed to request bill for sale ${openSale.id}: ${updateError.message}`,
+      );
+    }
+
+    return updatedSale as SaleRecord;
   }
 
   async getAllOpenSales(): Promise<SaleWithItems[]> {

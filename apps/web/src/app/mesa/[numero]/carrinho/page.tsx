@@ -3,24 +3,34 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
-import { useCart, useOrders } from "@/hooks/useCart";
+import { useCart } from "@/hooks/useCart";
 import { useSocketContext } from "@/providers/SocketProvider";
 import { formatCurrency } from "@/lib/utils";
 import QuantityControl from "@/components/QuantityControl";
+
+const SALE_SERVICE_URL =
+  process.env.NEXT_PUBLIC_SALE_SERVICE_URL ?? "http://localhost:3003";
 
 export default function CarrinhoPage({ params }: { params: { numero: string } }) {
   const { numero } = params;
   const router = useRouter();
   const { items, removeItem, updateQuantity, clearCart, total } = useCart(numero);
-  const { addOrder } = useOrders(numero);
-  const { billRequested } = useSocketContext();
+  const { fetchOrders } = useSocketContext();
+  const [billRequested, setBillRequested] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!billRequested) return;
-    router.replace(`/mesa/${numero}/pedidos?notice=bill_requested`);
-  }, [billRequested, numero, router]);
+    fetch(`${SALE_SERVICE_URL}/sales/table/${numero}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((sale) => {
+        if (sale?.bill_requested) {
+          setBillRequested(true);
+          router.replace(`/mesa/${numero}/pedidos?notice=bill_requested`);
+        }
+      })
+      .catch(() => {});
+  }, [numero, router]);
 
   if (billRequested) {
     return (
@@ -52,15 +62,7 @@ export default function CarrinhoPage({ params }: { params: { numero: string } })
 
       if (!response.ok) throw new Error("Falha ao confirmar pedido");
 
-      const data = await response.json();
-      const orderId = data.id;
-      addOrder({
-        orderId,
-        items,
-        total,
-        status: "pending",
-        createdAt: new Date().toISOString(),
-      });
+      await fetchOrders();
       clearCart();
       router.push(`/mesa/${numero}/pedidos`);
     } catch {

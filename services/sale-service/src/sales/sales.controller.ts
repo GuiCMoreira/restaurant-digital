@@ -21,6 +21,11 @@ export class SalesController {
     return this.salesService.getAllOpenSales();
   }
 
+  @Post('table/:tableNumber/request-bill')
+  async requestBill(@Param('tableNumber', ParseIntPipe) tableNumber: number) {
+    return this.salesService.requestBill(tableNumber);
+  }
+
   @Post('table/:tableNumber/close')
   async closeSale(@Param('tableNumber', ParseIntPipe) tableNumber: number) {
     const sale = await this.salesService.closeSale(tableNumber);

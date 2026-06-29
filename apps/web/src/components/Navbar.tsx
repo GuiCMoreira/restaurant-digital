@@ -2,7 +2,8 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
-import { useCart, useOrders } from "@/hooks/useCart";
+import { useCart } from "@/hooks/useCart";
+import { useOrders } from "@/hooks/useOrders";
 
 export default function Navbar() {
   const pathname = usePathname();

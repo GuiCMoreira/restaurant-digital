@@ -4,11 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { menu } from "@/data/menu";
-import { useCart, useOrders } from "@/hooks/useCart";
+import { useCart } from "@/hooks/useCart";
 import { useSocketContext } from "@/providers/SocketProvider";
 import CategoryFilter from "@/components/CategoryFilter";
 import MenuItemCard from "@/components/MenuItemCard";
 import CartButton from "@/components/CartButton";
+
+const SALE_SERVICE_URL =
+  process.env.NEXT_PUBLIC_SALE_SERVICE_URL ?? "http://localhost:3003";
 
 const THANK_YOU_DURATION = 3000;
 
@@ -20,13 +23,26 @@ export default function CardapioPage({ params }: { params: { numero: string } })
 
   const [showThankYou, setShowThankYou] = useState(isReset);
   const [activeCategory, setActiveCategory] = useState(menu[0].id);
+  const [billRequested, setBillRequested] = useState(false);
+  const [hasOpenSale, setHasOpenSale] = useState(false);
   const { items, addItem, updateQuantity, total, totalItems } = useCart(numero);
-  const { orders } = useOrders(numero);
-  const { billRequested } = useSocketContext();
+  const { orders } = useSocketContext();
 
   const category = menu.find((c) => c.id === activeCategory) ?? menu[0];
-
   const quantityOf = (id: string) => items.find((i) => i.id === id)?.quantity ?? 0;
+  const hasOrders = orders.length > 0 || hasOpenSale;
+
+  useEffect(() => {
+    fetch(`${SALE_SERVICE_URL}/sales/table/${numero}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((sale) => {
+        if (sale) {
+          setHasOpenSale(true);
+          setBillRequested(sale.bill_requested ?? false);
+        }
+      })
+      .catch(() => {});
+  }, [numero]);
 
   useEffect(() => {
     if (!isReset) return;
@@ -57,13 +73,15 @@ export default function CardapioPage({ params }: { params: { numero: string } })
         </div>
       )}
 
-      {orders.length > 0 && (
+      {hasOrders && !billRequested && (
         <Link
           href={`/mesa/${numero}/pedidos`}
           className="mb-4 flex items-center justify-between rounded-lg bg-mist px-4 py-3 text-sm font-medium text-forest"
         >
           <span>
-            Você já tem {orders.length} {orders.length === 1 ? "pedido" : "pedidos"} em andamento
+            {orders.length > 0
+              ? `Você já tem ${orders.length} ${orders.length === 1 ? "pedido" : "pedidos"} em andamento`
+              : "Você tem pedidos em andamento"}
           </span>
           <span>Ver meus pedidos →</span>
         </Link>

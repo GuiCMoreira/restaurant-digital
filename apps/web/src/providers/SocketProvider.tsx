@@ -7,16 +7,21 @@ import {
   useEffect,
   useMemo,
   useRef,
-  useState,
 } from "react";
 import { useRouter } from "next/navigation";
 import { io, Socket } from "socket.io-client";
 import type { SaleClosedEvent } from "@restaurant/shared-types";
-import { useCart, useOrders } from "@/hooks/useCart";
+import { useCart } from "@/hooks/useCart";
+import { useOrders, type Order } from "@/hooks/useOrders";
+
+const SALE_SERVICE_URL =
+  process.env.NEXT_PUBLIC_SALE_SERVICE_URL ?? "http://localhost:3003";
 
 interface SocketContextValue {
-  requestBill: () => void;
-  billRequested: boolean;
+  orders: Order[];
+  totalAllOrders: number;
+  fetchOrders: () => Promise<void>;
+  requestBill: () => Promise<void>;
 }
 
 const SocketContext = createContext<SocketContextValue | null>(null);
@@ -29,18 +34,6 @@ export function useSocketContext() {
   return context;
 }
 
-function billRequestedKey(tableNumber: string | number) {
-  return `bill_requested:${tableNumber}`;
-}
-
-function cartStorageKey(tableNumber: string | number) {
-  return `cart:mesa:${tableNumber}`;
-}
-
-function ordersStorageKey(tableNumber: string | number) {
-  return `orders:${tableNumber}`;
-}
-
 interface SocketProviderProps {
   tableNumber: string;
   children: React.ReactNode;
@@ -49,13 +42,8 @@ interface SocketProviderProps {
 export function SocketProvider({ tableNumber, children }: SocketProviderProps) {
   const router = useRouter();
   const { clearCart } = useCart(tableNumber);
-  const { updateOrderStatus, clearOrders } = useOrders(tableNumber);
+  const { orders, fetchOrders, updateOrderStatus, totalAllOrders } = useOrders(tableNumber);
   const socketRef = useRef<Socket | null>(null);
-  const [billRequested, setBillRequested] = useState(false);
-
-  useEffect(() => {
-    setBillRequested(window.localStorage.getItem(billRequestedKey(tableNumber)) === "true");
-  }, [tableNumber]);
 
   useEffect(() => {
     const socket: Socket = io("http://localhost:3004");
@@ -75,30 +63,18 @@ export function SocketProvider({ tableNumber, children }: SocketProviderProps) {
     });
 
     socket.on("sale:closed", (event: SaleClosedEvent) => {
-      console.log("[Socket] sale:closed recebido", event);
       if (event.tableNumber !== Number(tableNumber)) return;
-
-      window.localStorage.removeItem(billRequestedKey(tableNumber));
-      setBillRequested(false);
-      clearOrders();
+      fetchOrders();
       clearCart();
       router.push(`/mesa/${tableNumber}?reset=true`);
     });
 
-    // Fallback: garante que QUALQUER tablet conectado (mesmo em outra mesa)
-    // limpa o localStorage da mesa que foi fechada, mesmo que ninguém estivesse
-    // com a tela dessa mesa aberta no momento em que o sale:closed foi emitido
-    // para a room table:{tableNumber}.
+    // Fallback: any connected client clears the cart for the closed table,
+    // even if they were viewing a different table at the time.
     socket.on("sale:closed:broadcast", ({ tableNumber: closedTable }: { tableNumber: number }) => {
-      console.log("[Socket] sale:closed:broadcast recebido para mesa:", closedTable);
-
-      window.localStorage.removeItem(ordersStorageKey(closedTable));
-      window.localStorage.removeItem(cartStorageKey(closedTable));
-      window.localStorage.removeItem(billRequestedKey(closedTable));
-
+      window.localStorage.removeItem(`cart:mesa:${closedTable}`);
       if (closedTable === Number(tableNumber)) {
-        setBillRequested(false);
-        clearOrders();
+        fetchOrders();
         clearCart();
         router.push(`/mesa/${tableNumber}?reset=true`);
       }
@@ -108,15 +84,22 @@ export function SocketProvider({ tableNumber, children }: SocketProviderProps) {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [tableNumber, updateOrderStatus, clearOrders, clearCart, router]);
+  }, [tableNumber, fetchOrders, updateOrderStatus, clearCart, router]);
 
-  const requestBill = useCallback(() => {
+  const requestBill = useCallback(async () => {
+    await fetch(
+      `${SALE_SERVICE_URL}/sales/table/${tableNumber}/request-bill`,
+      { method: "POST" }
+    );
     socketRef.current?.emit("request:bill", { tableNumber: Number(tableNumber) });
-    window.localStorage.setItem(billRequestedKey(tableNumber), "true");
-    setBillRequested(true);
   }, [tableNumber]);
 
-  const value = useMemo(() => ({ requestBill, billRequested }), [requestBill, billRequested]);
+  const value = useMemo(
+    () => ({ orders, totalAllOrders, fetchOrders, requestBill }),
+    [orders, totalAllOrders, fetchOrders, requestBill]
+  );
 
-  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
+  return (
+    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
+  );
 }

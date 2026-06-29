@@ -46,7 +46,6 @@ async function hasActiveKitchenOrders(tableNumber: number): Promise<boolean> {
 export default function WaiterHomePage() {
   const [sales, setSales] = useState<SaleWithItems[]>([]);
   const [loading, setLoading] = useState(true);
-  const [billRequestedTables, setBillRequestedTables] = useState<Record<number, boolean>>({});
   const [activeKitchenTables, setActiveKitchenTables] = useState<Set<number>>(new Set());
 
   const loadSales = useCallback(async () => {
@@ -79,19 +78,11 @@ export default function WaiterHomePage() {
   }, [loadSales]);
 
   const { connected } = useWaiterSocket({
-    onSaleClosed: (event) => {
-      setBillRequestedTables((prev) => {
-        const next = { ...prev };
-        delete next[event.tableNumber];
-        return next;
-      });
-      loadSales();
-    },
+    onSaleClosed: () => loadSales(),
     onNewSale: () => loadSales(),
-    onBillRequested: (event) => {
-      const { tableNumber } = event;
-      setBillRequestedTables((prev) => ({ ...prev, [tableNumber]: true }));
+    onBillRequested: () => {
       playNotificationBeep();
+      loadSales();
     },
   });
 
@@ -122,7 +113,7 @@ export default function WaiterHomePage() {
               <TableCard
                 key={sale.id}
                 sale={sale}
-                billRequested={billRequestedTables[sale.table_number] ?? false}
+                billRequested={sale.bill_requested}
                 hasActiveOrders={activeKitchenTables.has(sale.table_number)}
               />
             ))}

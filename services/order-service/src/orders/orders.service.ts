@@ -99,4 +99,17 @@ export class OrdersService {
 
     return data as OrderRecord;
   }
+
+  async closeOrdersByIds(orderIds: string[]): Promise<void> {
+    if (orderIds.length === 0) return;
+
+    const { error } = await this.supabase
+      .from('orders')
+      .update({ status: 'closed', updated_at: new Date().toISOString() })
+      .in('id', orderIds);
+
+    if (error) {
+      throw new Error(`Failed to close orders: ${error.message}`);
+    }
+  }
 }

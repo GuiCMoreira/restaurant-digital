@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useOrders, type OrderStatus } from "@/hooks/useCart";
+import type { OrderStatus } from "@/hooks/useOrders";
 import { useSocketContext } from "@/providers/SocketProvider";
 import { formatCurrency, formatOrderTime } from "@/lib/utils";
+
+const SALE_SERVICE_URL =
+  process.env.NEXT_PUBLIC_SALE_SERVICE_URL ?? "http://localhost:3003";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
   pending: "Pendente",
@@ -22,8 +25,8 @@ export default function PedidosPage({ params }: { params: { numero: string } }) 
   const { numero } = params;
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { orders, totalAllOrders } = useOrders(numero);
-  const { requestBill, billRequested } = useSocketContext();
+  const { orders, totalAllOrders, requestBill } = useSocketContext();
+  const [billRequested, setBillRequested] = useState(false);
   const [showNotice, setShowNotice] = useState(searchParams.get("notice") === "bill_requested");
 
   useEffect(() => {
@@ -31,10 +34,20 @@ export default function PedidosPage({ params }: { params: { numero: string } }) 
     router.replace(`/mesa/${numero}/pedidos`);
   }, [searchParams, numero, router]);
 
+  useEffect(() => {
+    fetch(`${SALE_SERVICE_URL}/sales/table/${numero}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((sale) => {
+        if (sale?.bill_requested) setBillRequested(true);
+      })
+      .catch(() => {});
+  }, [numero]);
+
   const allReady = orders.length > 0 && orders.every((order) => order.status === "ready");
 
-  function handleRequestBill() {
-    requestBill();
+  async function handleRequestBill() {
+    await requestBill();
+    setBillRequested(true);
   }
 
   const sortedOrders = [...orders].sort(

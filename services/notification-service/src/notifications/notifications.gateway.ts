@@ -14,10 +14,12 @@ export class NotificationsGateway {
 
   @SubscribeMessage('join:table')
   handleJoinTable(
-    @MessageBody() data: { tableNumber: number },
+    @MessageBody() payload: { tableNumber: number },
     @ConnectedSocket() client: Socket,
   ): void {
-    client.join(`table:${data.tableNumber}`);
+    const room = `table:${payload.tableNumber}`;
+    client.join(room);
+    console.log('[Gateway] cliente entrou na room:', room);
   }
 
   @SubscribeMessage('join:kitchen')
@@ -28,6 +30,15 @@ export class NotificationsGateway {
   @SubscribeMessage('join:waiter')
   handleJoinWaiter(@ConnectedSocket() client: Socket): void {
     client.join('waiter');
+  }
+
+  @SubscribeMessage('request:bill')
+  handleRequestBill(@MessageBody() payload: { tableNumber: number }): void {
+    this.notifyWaiter('bill:requested', {
+      tableNumber: payload.tableNumber,
+      requestedAt: new Date().toISOString(),
+    });
+    console.log('[Gateway] bill:requested para mesa:', payload.tableNumber);
   }
 
   notifyTable(tableNumber: number, event: string, data: unknown): void {

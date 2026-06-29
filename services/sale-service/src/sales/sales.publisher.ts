@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
-import type { SaleClosedEvent } from '@restaurant/shared-types';
+import type { SaleClosedEvent, SaleUpdatedEvent } from '@restaurant/shared-types';
 import { SaleRecord } from './sales.service';
 
 const RESTAURANT_EXCHANGE = 'restaurant';
@@ -17,5 +17,15 @@ export class SalesPublisher {
     };
 
     await this.amqpConnection.publish(RESTAURANT_EXCHANGE, 'sale.closed', event);
+  }
+
+  async publishSaleUpdated(sale: SaleRecord): Promise<void> {
+    const event: SaleUpdatedEvent = {
+      tableNumber: sale.table_number,
+      saleId: sale.id,
+      totalAmount: sale.total_amount,
+    };
+
+    await this.amqpConnection.publish(RESTAURANT_EXCHANGE, 'sale.updated', event);
   }
 }

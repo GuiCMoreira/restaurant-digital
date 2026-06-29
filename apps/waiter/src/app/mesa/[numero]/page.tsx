@@ -32,10 +32,12 @@ export default function MesaComandaPage({ params }: { params: { numero: string }
     loadSale();
   }, [numero]);
 
-  const { connected } = useWaiterSocket((event) => {
-    if (String(event.tableNumber) === numero) {
-      router.push("/");
-    }
+  const { connected } = useWaiterSocket({
+    onSaleClosed: (event) => {
+      if (String(event.tableNumber) === numero) {
+        router.push("/");
+      }
+    },
   });
 
   async function handleCloseBill() {

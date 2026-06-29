@@ -4,12 +4,24 @@ import type {
   KitchenQueuedEvent,
   KitchenStatusUpdatedEvent,
   SaleClosedEvent,
+  SaleUpdatedEvent,
 } from '@restaurant/shared-types';
 import { NotificationsGateway } from './notifications.gateway';
 
 @Injectable()
 export class NotificationsConsumer {
   constructor(private readonly notificationsGateway: NotificationsGateway) {}
+
+  @RabbitSubscribe({
+    exchange: 'restaurant',
+    routingKey: 'sale.updated',
+    queue: 'notification.sale.updated',
+  })
+  handleSaleUpdated(event: SaleUpdatedEvent): void {
+    this.notificationsGateway.notifyWaiter('order:new_sale', {
+      tableNumber: event.tableNumber,
+    });
+  }
 
   @RabbitSubscribe({
     exchange: 'restaurant',
@@ -49,9 +61,11 @@ export class NotificationsConsumer {
     queue: 'notification.sale.closed',
   })
   handleSaleClosed(event: SaleClosedEvent): void {
+    console.log('[Notification] emitindo sale:closed para table:', event.tableNumber);
+
     this.notificationsGateway.notifyWaiter('sale:closed', event);
     this.notificationsGateway.notifyTable(
-      event.tableNumber,
+      Number(event.tableNumber),
       'sale:closed',
       event,
     );

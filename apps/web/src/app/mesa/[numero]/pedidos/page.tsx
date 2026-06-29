@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { io, Socket } from "socket.io-client";
 import { useOrders, type OrderStatus } from "@/hooks/useCart";
+import { useSocketContext } from "@/providers/SocketProvider";
 import { formatCurrency, formatOrderTime } from "@/lib/utils";
 
 const STATUS_LABEL: Record<OrderStatus, string> = {
@@ -18,73 +18,21 @@ const STATUS_CLASS: Record<OrderStatus, string> = {
   ready: "bg-mist text-forest",
 };
 
-const SALE_CLOSED_REDIRECT_DELAY = 5000;
-
 export default function PedidosPage({ params }: { params: { numero: string } }) {
   const { numero } = params;
   const router = useRouter();
-  const { orders, updateOrderStatus, clearOrders, totalAllOrders } = useOrders(numero);
-  const [closing, setClosing] = useState(false);
-  const [saleClosed, setSaleClosed] = useState(false);
+  const { orders, totalAllOrders } = useOrders(numero);
+  const { requestBill } = useSocketContext();
+  const [billRequested, setBillRequested] = useState(false);
 
-  useEffect(() => {
-    const socket: Socket = io("http://localhost:3004");
-
-    socket.on("connect", () => {
-      socket.emit("join:table", { tableNumber: Number(numero) });
-    });
-
-    socket.on("order:preparing", (event: { orderId: string }) => {
-      updateOrderStatus(event.orderId, "preparing");
-    });
-
-    socket.on("order:ready", (event: { orderId: string }) => {
-      updateOrderStatus(event.orderId, "ready");
-    });
-
-    socket.on("sale:closed", () => {
-      setSaleClosed(true);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [numero, updateOrderStatus]);
-
-  useEffect(() => {
-    if (!saleClosed) return;
-
-    const timeout = setTimeout(() => {
-      clearOrders();
-      router.push(`/mesa/${numero}`);
-    }, SALE_CLOSED_REDIRECT_DELAY);
-
-    return () => clearTimeout(timeout);
-  }, [saleClosed, clearOrders, router, numero]);
-
-  async function handleCloseBill() {
-    setClosing(true);
-    try {
-      await fetch(`http://localhost:3003/sales/table/${numero}/close`, {
-        method: "POST",
-      });
-    } finally {
-      setClosing(false);
-    }
+  function handleRequestBill() {
+    requestBill();
+    setBillRequested(true);
   }
 
   const sortedOrders = [...orders].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
-
-  if (saleClosed) {
-    return (
-      <main className="mx-auto max-w-2xl px-4 pb-8 pt-6 text-center">
-        <p className="mt-16 font-serif text-2xl text-forest">Conta fechada! Obrigado pela visita.</p>
-        <p className="mt-2 text-sm text-muted">Voltando ao cardápio...</p>
-      </main>
-    );
-  }
 
   return (
     <main className="mx-auto max-w-2xl px-4 pb-8 pt-6">
@@ -142,14 +90,19 @@ export default function PedidosPage({ params }: { params: { numero: string } }) 
         ＋ Adicionar mais itens
       </button>
 
-      <button
-        type="button"
-        onClick={handleCloseBill}
-        disabled={closing}
-        className="mt-3 w-full rounded-lg bg-spice py-3 font-medium text-linen transition-colors hover:bg-spice/90 disabled:opacity-60"
-      >
-        {closing ? "Solicitando..." : "Pedir a conta"}
-      </button>
+      {billRequested ? (
+        <p className="mt-3 w-full rounded-lg bg-mist py-3 text-center font-medium text-forest">
+          Garçom notificado! Aguarde um momento.
+        </p>
+      ) : (
+        <button
+          type="button"
+          onClick={handleRequestBill}
+          className="mt-3 w-full rounded-lg bg-spice py-3 font-medium text-linen transition-colors hover:bg-spice/90"
+        >
+          Chamar garçom para a conta
+        </button>
+      )}
     </main>
   );
 }

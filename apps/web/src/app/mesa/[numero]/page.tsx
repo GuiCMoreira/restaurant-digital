@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { menu } from "@/data/menu";
 import { useCart, useOrders } from "@/hooks/useCart";
@@ -8,8 +9,15 @@ import CategoryFilter from "@/components/CategoryFilter";
 import MenuItemCard from "@/components/MenuItemCard";
 import CartButton from "@/components/CartButton";
 
+const THANK_YOU_DURATION = 3000;
+
 export default function CardapioPage({ params }: { params: { numero: string } }) {
   const { numero } = params;
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isReset = searchParams.get("reset") === "true";
+
+  const [showThankYou, setShowThankYou] = useState(isReset);
   const [activeCategory, setActiveCategory] = useState(menu[0].id);
   const { items, addItem, updateQuantity, total, totalItems } = useCart(numero);
   const { orders } = useOrders(numero);
@@ -17,6 +25,27 @@ export default function CardapioPage({ params }: { params: { numero: string } })
   const category = menu.find((c) => c.id === activeCategory) ?? menu[0];
 
   const quantityOf = (id: string) => items.find((i) => i.id === id)?.quantity ?? 0;
+
+  useEffect(() => {
+    if (!isReset) return;
+
+    const timeout = setTimeout(() => {
+      setShowThankYou(false);
+      router.replace(`/mesa/${numero}`);
+    }, THANK_YOU_DURATION);
+
+    return () => clearTimeout(timeout);
+  }, [isReset, numero, router]);
+
+  if (showThankYou) {
+    return (
+      <main className="flex min-h-[60vh] items-center justify-center px-4 text-center">
+        <p className="font-serif text-2xl text-forest">
+          Obrigado pela visita! A mesa está pronta para novos clientes.
+        </p>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-4xl px-4 pb-28 pt-6">

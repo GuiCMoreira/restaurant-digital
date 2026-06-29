@@ -6,9 +6,10 @@ import { formatCurrency, formatElapsed } from "@/lib/utils";
 
 interface TableCardProps {
   sale: SaleWithItems;
+  billRequested?: boolean;
 }
 
-export default function TableCard({ sale }: TableCardProps) {
+export default function TableCard({ sale, billRequested = false }: TableCardProps) {
   const router = useRouter();
 
   const itemCount = sale.items.reduce(
@@ -17,11 +18,21 @@ export default function TableCard({ sale }: TableCardProps) {
   );
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-black/10 bg-white p-5">
+    <div
+      className={`flex flex-col gap-3 rounded-xl border-2 bg-white p-5 ${
+        billRequested ? "border-spice" : "border-black/10"
+      }`}
+    >
       <div className="flex items-start justify-between gap-2">
         <h2 className="font-serif text-2xl font-bold text-forest">Mesa {sale.table_number}</h2>
         <span className="rounded-full bg-mist px-3 py-1 text-xs font-bold text-forest">Aberta</span>
       </div>
+
+      {billRequested && (
+        <span className="w-fit rounded-full bg-spice px-3 py-1 text-xs font-bold text-linen">
+          Conta solicitada!
+        </span>
+      )}
 
       <span className="font-serif text-xl font-bold text-forest">
         {formatCurrency(sale.total_amount)}

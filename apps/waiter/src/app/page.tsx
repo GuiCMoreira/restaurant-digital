@@ -7,9 +7,33 @@ import ConnectionStatus from "@/components/ConnectionStatus";
 import { useWaiterSocket } from "@/hooks/useWaiterSocket";
 import type { SaleWithItems } from "@/types/sale";
 
+function playNotificationBeep() {
+  try {
+    const AudioContextClass =
+      window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const context = new AudioContextClass();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.value = 880;
+    gain.gain.setValueAtTime(0.2, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.3);
+
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.3);
+  } catch {
+    // Web Audio API indisponível — ignora o som
+  }
+}
+
 export default function WaiterHomePage() {
   const [sales, setSales] = useState<SaleWithItems[]>([]);
   const [loading, setLoading] = useState(true);
+  const [billRequests, setBillRequests] = useState<Set<number>>(new Set());
 
   const loadSales = useCallback(async () => {
     try {
@@ -17,6 +41,10 @@ export default function WaiterHomePage() {
       if (!response.ok) return;
       const data: SaleWithItems[] = await response.json();
       setSales(data);
+      setBillRequests((current) => {
+        const openTables = new Set(data.map((sale) => sale.table_number));
+        return new Set(Array.from(current).filter((tableNumber) => openTables.has(tableNumber)));
+      });
     } catch {
       // sale-service indisponível — mantém a última lista carregada
     } finally {
@@ -30,8 +58,13 @@ export default function WaiterHomePage() {
     return () => clearInterval(interval);
   }, [loadSales]);
 
-  const { connected } = useWaiterSocket((event) => {
-    setSales((current) => current.filter((sale) => sale.table_number !== event.tableNumber));
+  const { connected } = useWaiterSocket({
+    onSaleClosed: () => loadSales(),
+    onNewSale: () => loadSales(),
+    onBillRequested: (event) => {
+      setBillRequests((current) => new Set(current).add(event.tableNumber));
+      playNotificationBeep();
+    },
   });
 
   return (
@@ -58,7 +91,11 @@ export default function WaiterHomePage() {
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {sales.map((sale) => (
-              <TableCard key={sale.id} sale={sale} />
+              <TableCard
+                key={sale.id}
+                sale={sale}
+                billRequested={billRequests.has(sale.table_number)}
+              />
             ))}
           </div>
         )}

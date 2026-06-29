@@ -42,6 +42,12 @@ export interface SaleClosedEvent {
   closedAt: string
 }
 
+export interface SaleUpdatedEvent {
+  tableNumber: number
+  saleId: string
+  totalAmount: number
+}
+
 export type RabbitMQQueues = {
   ORDER_CREATED: 'order.created'
   ORDER_CONFIRMED: 'order.confirmed'

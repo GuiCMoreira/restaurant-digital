@@ -83,6 +83,6 @@ PORT=3004
 - [x] sale-service
 - [x] notification-service
 - [x] apps/web
-- [ ] apps/kitchen
+- [x] apps/kitchen
 - [ ] apps/waiter
 - [ ] deploy

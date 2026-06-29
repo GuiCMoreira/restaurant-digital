@@ -38,14 +38,14 @@ export default function Navbar() {
         </span>
       </div>
 
-      <div className="flex flex-shrink-0 items-center gap-1 sm:gap-4">
+      <div className="flex flex-shrink-0 items-center gap-2 sm:gap-4">
         <button
           type="button"
           onClick={() => router.push(`/mesa/${tableNumber}`)}
           aria-label="Cardápio"
-          className="flex items-center text-sm font-medium text-linen hover:underline"
+          className="flex h-9 w-9 items-center justify-center text-linen transition-colors hover:bg-fern rounded-full sm:h-auto sm:w-auto sm:rounded-none sm:hover:bg-transparent sm:hover:underline sm:text-sm sm:font-medium"
         >
-          <Home size={18} className="sm:hidden" />
+          <Home className="h-5 w-5 sm:hidden" />
           <span className="hidden sm:inline">Cardápio</span>
         </button>
 
@@ -54,9 +54,9 @@ export default function Navbar() {
             type="button"
             onClick={() => router.push(`/mesa/${tableNumber}/pedidos`)}
             aria-label="Meus pedidos"
-            className="flex items-center text-sm font-medium text-linen hover:underline"
+            className="flex h-9 w-9 items-center justify-center text-linen transition-colors hover:bg-fern rounded-full sm:h-auto sm:w-auto sm:rounded-none sm:hover:bg-transparent sm:hover:underline sm:text-sm sm:font-medium"
           >
-            <ClipboardList size={18} className="sm:hidden" />
+            <ClipboardList className="h-5 w-5 sm:hidden" />
             <span className="hidden sm:inline">Meus pedidos</span>
           </button>
         )}
@@ -67,7 +67,7 @@ export default function Navbar() {
           aria-label="Ver carrinho"
           className="relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-linen transition-colors hover:bg-fern"
         >
-          <ShoppingCart size={20} />
+          <ShoppingCart className="h-5 w-5" />
           {totalItems > 0 && (
             <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-spice px-1 text-[11px] font-bold text-linen">
               {totalItems}

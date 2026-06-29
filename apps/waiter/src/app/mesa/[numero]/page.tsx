@@ -9,6 +9,9 @@ import ConnectionStatus from "@/components/ConnectionStatus";
 import { useWaiterSocket } from "@/hooks/useWaiterSocket";
 import type { SaleWithItems } from "@/types/sale";
 
+const SALE_SERVICE_URL =
+  process.env.NEXT_PUBLIC_SALE_SERVICE_URL ?? "http://localhost:3003";
+
 export default function MesaComandaPage({ params }: { params: { numero: string } }) {
   const { numero } = params;
   const router = useRouter();
@@ -20,7 +23,7 @@ export default function MesaComandaPage({ params }: { params: { numero: string }
   useEffect(() => {
     async function loadSale() {
       try {
-        const response = await fetch(`http://localhost:3003/sales/table/${numero}`);
+        const response = await fetch(`${SALE_SERVICE_URL}/sales/table/${numero}`);
         if (response.ok) {
           const data = await response.json();
           setSale(data);
@@ -45,7 +48,7 @@ export default function MesaComandaPage({ params }: { params: { numero: string }
     setClosing(true);
     setCloseError(null);
     try {
-      const response = await fetch(`http://localhost:3003/sales/table/${numero}/close`, {
+      const response = await fetch(`${SALE_SERVICE_URL}/sales/table/${numero}/close`, {
         method: "POST",
       });
 

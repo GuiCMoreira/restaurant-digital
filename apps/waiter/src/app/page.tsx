@@ -9,6 +9,11 @@ import type { SaleWithItems } from "@/types/sale";
 
 const ACTIVE_ORDER_STATUSES = ["pending", "preparing"];
 
+const ORDER_SERVICE_URL =
+  process.env.NEXT_PUBLIC_ORDER_SERVICE_URL ?? "http://localhost:3001";
+const SALE_SERVICE_URL =
+  process.env.NEXT_PUBLIC_SALE_SERVICE_URL ?? "http://localhost:3003";
+
 function playNotificationBeep() {
   try {
     const AudioContextClass =
@@ -34,7 +39,7 @@ function playNotificationBeep() {
 
 async function hasActiveKitchenOrders(tableNumber: number): Promise<boolean> {
   try {
-    const response = await fetch(`http://localhost:3001/orders/table/${tableNumber}`);
+    const response = await fetch(`${ORDER_SERVICE_URL}/orders/table/${tableNumber}`);
     if (!response.ok) return false;
     const orders: Array<{ status: string }> = await response.json();
     return orders.some((order) => ACTIVE_ORDER_STATUSES.includes(order.status));
@@ -50,7 +55,7 @@ export default function WaiterHomePage() {
 
   const loadSales = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:3003/sales");
+      const response = await fetch(`${SALE_SERVICE_URL}/sales`);
       if (!response.ok) return;
       const data: SaleWithItems[] = await response.json();
       setSales(data);

@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import type { SaleClosedEvent } from "@restaurant/shared-types";
 
+const NOTIFICATION_SERVICE_URL =
+  process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE_URL ?? "http://localhost:3004";
+
 interface NewSaleEvent {
   tableNumber: number;
 }
@@ -33,7 +36,7 @@ export function useWaiterSocket({
   onBillRequestedRef.current = onBillRequested;
 
   useEffect(() => {
-    const socket: Socket = io("http://localhost:3004");
+    const socket: Socket = io(NOTIFICATION_SERVICE_URL);
 
     socket.on("connect", () => {
       setConnected(true);

@@ -16,6 +16,8 @@ import { useOrders, type Order } from "@/hooks/useOrders";
 
 const SALE_SERVICE_URL =
   process.env.NEXT_PUBLIC_SALE_SERVICE_URL ?? "http://localhost:3003";
+const NOTIFICATION_SERVICE_URL =
+  process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE_URL ?? "http://localhost:3004";
 
 interface SocketContextValue {
   orders: Order[];
@@ -46,7 +48,7 @@ export function SocketProvider({ tableNumber, children }: SocketProviderProps) {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const socket: Socket = io("http://localhost:3004");
+    const socket: Socket = io(NOTIFICATION_SERVICE_URL);
     socketRef.current = socket;
 
     socket.on("connect", () => {

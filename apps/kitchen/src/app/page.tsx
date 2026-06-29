@@ -21,6 +21,11 @@ interface QueueRecord {
 
 const MAX_VISIBLE_READY = 20;
 
+const KITCHEN_SERVICE_URL =
+  process.env.NEXT_PUBLIC_KITCHEN_SERVICE_URL ?? "http://localhost:3002";
+const NOTIFICATION_SERVICE_URL =
+  process.env.NEXT_PUBLIC_NOTIFICATION_SERVICE_URL ?? "http://localhost:3004";
+
 export default function KitchenPage() {
   const [orders, setOrders] = useState<KitchenOrder[]>([]);
   const [connected, setConnected] = useState(false);
@@ -31,7 +36,7 @@ export default function KitchenPage() {
   useEffect(() => {
     async function loadQueue() {
       try {
-        const response = await fetch("http://localhost:3002/kitchen/queue");
+        const response = await fetch(`${KITCHEN_SERVICE_URL}/kitchen/queue`);
         if (!response.ok) return;
         const data: QueueRecord[] = await response.json();
 
@@ -57,7 +62,7 @@ export default function KitchenPage() {
   }, []);
 
   useEffect(() => {
-    const socket: Socket = io("http://localhost:3004");
+    const socket: Socket = io(NOTIFICATION_SERVICE_URL);
 
     socket.on("connect", () => {
       setConnected(true);
@@ -102,7 +107,7 @@ export default function KitchenPage() {
   // Conecta diretamente ao gateway do kitchen-service para refletir, em todas as
   // telas abertas, a remoção de pedidos finalizados feita por qualquer dispositivo.
   useEffect(() => {
-    const queueSocket: Socket = io("http://localhost:3002/kitchen");
+    const queueSocket: Socket = io(`${KITCHEN_SERVICE_URL}/kitchen`);
 
     queueSocket.on("queue:updated", (queue: QueueRecord[]) => {
       setOrders((current) => {
@@ -132,7 +137,7 @@ export default function KitchenPage() {
   const updateStatus = useCallback(async (orderId: string, status: "preparing" | "ready") => {
     setUpdatingId(orderId);
     try {
-      await fetch(`http://localhost:3002/kitchen/orders/${orderId}/status`, {
+      await fetch(`${KITCHEN_SERVICE_URL}/kitchen/orders/${orderId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
@@ -178,7 +183,7 @@ export default function KitchenPage() {
 
     setClearing(true);
     try {
-      await fetch("http://localhost:3002/kitchen/queue/finished", {
+      await fetch(`${KITCHEN_SERVICE_URL}/kitchen/queue/finished`, {
         method: "DELETE",
       });
       setOrders((current) => current.filter((order) => order.status !== "ready"));

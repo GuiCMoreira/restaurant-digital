@@ -10,6 +10,8 @@ import QuantityControl from "@/components/QuantityControl";
 
 const SALE_SERVICE_URL =
   process.env.NEXT_PUBLIC_SALE_SERVICE_URL ?? "http://localhost:3003";
+const ORDER_SERVICE_URL =
+  process.env.NEXT_PUBLIC_ORDER_SERVICE_URL ?? "http://localhost:3001";
 
 export default function CarrinhoPage({ params }: { params: { numero: string } }) {
   const { numero } = params;
@@ -46,7 +48,7 @@ export default function CarrinhoPage({ params }: { params: { numero: string } })
     setSubmitting(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:3001/orders", {
+      const response = await fetch(`${ORDER_SERVICE_URL}/orders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

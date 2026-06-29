@@ -82,7 +82,7 @@ PORT=3004
 - [x] kitchen-service
 - [x] sale-service
 - [x] notification-service
-- [ ] apps/web
+- [x] apps/web
 - [ ] apps/kitchen
 - [ ] apps/waiter
 - [ ] deploy

@@ -76,14 +76,14 @@ export default function CardapioPage({ params }: { params: { numero: string } })
       {hasOrders && !billRequested && (
         <Link
           href={`/mesa/${numero}/pedidos`}
-          className="mb-4 flex items-center justify-between rounded-lg bg-mist px-4 py-3 text-sm font-medium text-forest"
+          className="mb-4 flex flex-wrap items-center justify-between gap-1 rounded-lg bg-mist px-4 py-3 text-sm font-medium text-forest"
         >
           <span>
             {orders.length > 0
               ? `Você já tem ${orders.length} ${orders.length === 1 ? "pedido" : "pedidos"} em andamento`
               : "Você tem pedidos em andamento"}
           </span>
-          <span>Ver meus pedidos →</span>
+          <span className="whitespace-nowrap">Ver meus pedidos →</span>
         </Link>
       )}
 

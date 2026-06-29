@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Trash2 } from "lucide-react";
-import { useCart } from "@/hooks/useCart";
+import { Trash2 } from "lucide-react";
+import { useCart, useOrders } from "@/hooks/useCart";
 import { formatCurrency } from "@/lib/utils";
 import QuantityControl from "@/components/QuantityControl";
 
@@ -11,6 +11,7 @@ export default function CarrinhoPage({ params }: { params: { numero: string } })
   const { numero } = params;
   const router = useRouter();
   const { items, removeItem, updateQuantity, clearCart, total } = useCart(numero);
+  const { addOrder } = useOrders(numero);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,12 +37,15 @@ export default function CarrinhoPage({ params }: { params: { numero: string } })
 
       const data = await response.json();
       const orderId = data.id;
-      window.localStorage.setItem(
-        `order:${orderId}`,
-        JSON.stringify({ tableNumber: numero, items, total })
-      );
+      addOrder({
+        orderId,
+        items,
+        total,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      });
       clearCart();
-      router.push(`/mesa/${numero}/pedido?orderId=${orderId}`);
+      router.push(`/mesa/${numero}/pedidos`);
     } catch {
       setError("Não foi possível confirmar o pedido. Tente novamente.");
       setSubmitting(false);
@@ -50,17 +54,15 @@ export default function CarrinhoPage({ params }: { params: { numero: string } })
 
   return (
     <main className="mx-auto max-w-2xl px-4 pb-8 pt-6">
-      <div className="mb-6 flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => router.push(`/mesa/${numero}`)}
-          aria-label="Voltar"
-          className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-mist text-forest transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="font-serif text-2xl text-forest">Seu pedido</h1>
-      </div>
+      <button
+        type="button"
+        onClick={() => router.push(`/mesa/${numero}`)}
+        className="mb-4 text-sm font-medium text-fern hover:underline"
+      >
+        ← Voltar ao cardápio
+      </button>
+
+      <h1 className="mb-6 font-serif text-2xl text-forest">Seu pedido</h1>
 
       {items.length === 0 ? (
         <p className="text-muted">Seu carrinho está vazio.</p>

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { menu } from "@/data/menu";
-import { useCart } from "@/hooks/useCart";
+import { useCart, useOrders } from "@/hooks/useCart";
 import CategoryFilter from "@/components/CategoryFilter";
 import MenuItemCard from "@/components/MenuItemCard";
 import CartButton from "@/components/CartButton";
@@ -11,6 +12,7 @@ export default function CardapioPage({ params }: { params: { numero: string } })
   const { numero } = params;
   const [activeCategory, setActiveCategory] = useState(menu[0].id);
   const { items, addItem, updateQuantity, total, totalItems } = useCart(numero);
+  const { orders } = useOrders(numero);
 
   const category = menu.find((c) => c.id === activeCategory) ?? menu[0];
 
@@ -18,6 +20,18 @@ export default function CardapioPage({ params }: { params: { numero: string } })
 
   return (
     <main className="mx-auto max-w-4xl px-4 pb-28 pt-6">
+      {orders.length > 0 && (
+        <Link
+          href={`/mesa/${numero}/pedidos`}
+          className="mb-4 flex items-center justify-between rounded-lg bg-mist px-4 py-3 text-sm font-medium text-forest"
+        >
+          <span>
+            Você já tem {orders.length} {orders.length === 1 ? "pedido" : "pedidos"} em andamento
+          </span>
+          <span>Ver meus pedidos →</span>
+        </Link>
+      )}
+
       <h1 className="mb-4 font-serif text-3xl font-bold text-forest">Olá! O que vai querer hoje?</h1>
 
       <CategoryFilter categories={menu} active={activeCategory} onChange={setActiveCategory} />

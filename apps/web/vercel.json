@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
+  "outputDirectory": ".next",
   "installCommand": "npm install --prefix ../../packages/shared-types && npm install",
   "buildCommand": "npm run build --prefix ../../packages/shared-types && next build"
 }

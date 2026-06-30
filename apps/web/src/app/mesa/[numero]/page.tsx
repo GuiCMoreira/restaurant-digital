@@ -68,7 +68,7 @@ export default function CardapioPage({ params }: { params: { numero: string } })
   return (
     <main className="mx-auto max-w-4xl px-4 pb-28 pt-6">
       {billRequested && (
-        <div className="mb-4 rounded-lg bg-spice px-4 py-3 text-sm font-medium text-linen">
+        <div className="animate-slide-down-in mb-4 rounded-lg bg-spice px-4 py-3 text-sm font-medium text-linen">
           Conta solicitada — novos pedidos não são permitidos
         </div>
       )}
@@ -76,7 +76,7 @@ export default function CardapioPage({ params }: { params: { numero: string } })
       {hasOrders && !billRequested && (
         <Link
           href={`/mesa/${numero}/pedidos`}
-          className="mb-4 flex flex-wrap items-center justify-between gap-1 rounded-lg bg-mist px-4 py-3 text-sm font-medium text-forest"
+          className="animate-slide-down-in mb-4 flex flex-wrap items-center justify-between gap-1 rounded-lg bg-mist px-4 py-3 text-sm font-medium text-forest"
         >
           <span>
             {orders.length > 0
@@ -91,7 +91,7 @@ export default function CardapioPage({ params }: { params: { numero: string } })
 
       <CategoryFilter categories={menu} active={activeCategory} onChange={setActiveCategory} />
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="stagger-list mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {category.items.map((item) => {
           const quantity = quantityOf(item.id);
           return (

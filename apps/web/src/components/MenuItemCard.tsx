@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import { MenuItem } from "@/data/menu";
 import { formatCurrency } from "@/lib/utils";
 import QuantityControl from "./QuantityControl";
@@ -21,9 +23,23 @@ export default function MenuItemCard({
   onDecrement,
   disabled = false,
 }: MenuItemCardProps) {
+  const [imgError, setImgError] = useState(false);
+
   return (
-    <div className="flex flex-col overflow-hidden rounded-lg border border-black/10 bg-white">
-      <div className="flex h-[120px] items-center justify-center bg-mist text-5xl">{item.emoji}</div>
+    <div className="animate-fade-in-up flex flex-col overflow-hidden rounded-lg border border-black/10 bg-white transition-transform duration-200 hover:scale-105">
+      <div className="relative flex h-[120px] items-center justify-center bg-mist text-5xl">
+        {!imgError ? (
+          <Image
+            src={item.image}
+            alt={item.name}
+            fill
+            className="object-cover"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          item.emoji
+        )}
+      </div>
       <div className="flex flex-1 flex-col gap-2 p-3">
         <p className="font-sans font-bold text-sm">{item.name}</p>
         <p className="font-serif text-forest">{formatCurrency(item.price)}</p>

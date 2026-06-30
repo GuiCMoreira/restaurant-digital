@@ -70,13 +70,13 @@ export default function PedidosPage({ params }: { params: { numero: string } }) 
       {sortedOrders.length === 0 ? (
         <p className="text-muted">Você ainda não fez nenhum pedido nesta mesa.</p>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="stagger-list flex flex-col gap-4">
           {sortedOrders.map((order) => (
-            <div key={order.orderId} className="rounded-lg border border-black/10 bg-white p-4">
+            <div key={order.orderId} className="animate-fade-in-up rounded-lg border border-black/10 bg-white p-4">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-sm text-muted">{formatOrderTime(order.createdAt)}</span>
                 <span
-                  className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_CLASS[order.status]}`}
+                  className={`rounded-full px-3 py-1 text-xs font-bold transition-colors duration-300 ${STATUS_CLASS[order.status]}`}
                 >
                   {STATUS_LABEL[order.status]}
                 </span>

@@ -24,7 +24,7 @@ export default function TableCard({
 
   return (
     <div
-      className={`flex flex-col gap-3 rounded-xl border-2 bg-white p-5 ${
+      className={`animate-fade-in-up flex flex-col gap-3 rounded-xl border-2 bg-white p-5 transition-shadow duration-200 hover:shadow-md ${
         billRequested ? "border-spice" : "border-black/10"
       }`}
     >
@@ -36,7 +36,7 @@ export default function TableCard({
       {(billRequested || hasActiveOrders) && (
         <div className="flex flex-wrap gap-2">
           {billRequested && (
-            <span className="w-fit rounded-full bg-spice px-3 py-1 text-xs font-bold text-linen">
+            <span className="animate-pulse-badge w-fit rounded-full bg-spice px-3 py-1 text-xs font-bold text-linen">
               Conta solicitada!
             </span>
           )}

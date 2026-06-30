@@ -17,14 +17,14 @@ export default function Navbar() {
 
   if (!tableNumber) {
     return (
-      <header className="sticky top-0 z-30 flex items-center bg-forest px-4 py-3">
+      <header className="animate-fade-in sticky top-0 z-30 flex items-center bg-forest px-4 py-3">
         <span className="font-serif text-lg sm:text-2xl font-bold text-linen">RestaurantOS</span>
       </header>
     );
   }
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-forest px-4 py-3">
+    <header className="animate-fade-in sticky top-0 z-30 flex items-center justify-between gap-2 bg-forest px-4 py-3">
       <div className="flex min-w-0 items-center gap-2">
         <button
           type="button"

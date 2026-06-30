@@ -92,7 +92,7 @@ export default function MesaComandaPage({ params }: { params: { numero: string }
         ) : !sale ? (
           <p className="text-muted">Nenhuma comanda aberta para esta mesa.</p>
         ) : (
-          <>
+          <div className="animate-slide-in-right">
             <SaleDetail sale={sale} />
 
             {closeError && (
@@ -105,11 +105,11 @@ export default function MesaComandaPage({ params }: { params: { numero: string }
               type="button"
               onClick={handleCloseBill}
               disabled={closing}
-              className="mt-6 w-full rounded-lg bg-spice py-3 font-medium text-linen transition-colors hover:bg-spice/90 disabled:opacity-60"
+              className="hover-shake mt-6 w-full rounded-lg bg-spice py-3 font-medium text-linen transition-colors hover:bg-spice/90 disabled:opacity-60"
             >
               {closing ? "Fechando conta..." : "Fechar conta"}
             </button>
-          </>
+          </div>
         )}
       </main>
     </div>

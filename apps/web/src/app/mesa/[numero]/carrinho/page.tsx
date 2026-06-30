@@ -88,11 +88,11 @@ export default function CarrinhoPage({ params }: { params: { numero: string } })
       {items.length === 0 ? (
         <p className="text-muted">Seu carrinho está vazio.</p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="stagger-list flex flex-col gap-3">
           {items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-3 rounded-lg border border-black/10 bg-white p-3"
+              className="animate-fade-in flex items-center justify-between gap-3 rounded-lg border border-black/10 bg-white p-3"
             >
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{item.emoji}</span>

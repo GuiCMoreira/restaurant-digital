@@ -201,9 +201,9 @@ export default function KitchenPage() {
         readyCount={ready.length}
       />
 
-      <main className="grid flex-1 grid-cols-1 gap-4 overflow-hidden px-6 py-6 md:grid-cols-3">
+      <main className="stagger-list grid flex-1 grid-cols-1 gap-4 overflow-hidden px-6 py-6 md:grid-cols-3">
         <section
-          className="flex flex-col overflow-hidden rounded-xl p-4"
+          className="animate-fade-in flex flex-col overflow-hidden rounded-xl p-4"
           style={{ backgroundColor: "#FEF9C3" }}
         >
           <div className="mb-3 flex items-center justify-between">
@@ -211,7 +211,7 @@ export default function KitchenPage() {
             <span className="text-sm font-medium text-muted">{received.length}</span>
           </div>
 
-          <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
+          <div className="stagger-list flex flex-1 flex-col gap-3 overflow-y-auto">
             {received.length === 0 ? (
               <EmptyState message="Nenhum pedido novo" />
             ) : (
@@ -229,7 +229,7 @@ export default function KitchenPage() {
         </section>
 
         <section
-          className="flex flex-col overflow-hidden rounded-xl p-4"
+          className="animate-fade-in flex flex-col overflow-hidden rounded-xl p-4"
           style={{ backgroundColor: "#DBEAFE" }}
         >
           <div className="mb-3 flex items-center justify-between">
@@ -237,7 +237,7 @@ export default function KitchenPage() {
             <span className="text-sm font-medium text-muted">{preparing.length}</span>
           </div>
 
-          <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
+          <div className="stagger-list flex flex-1 flex-col gap-3 overflow-y-auto">
             {preparing.length === 0 ? (
               <EmptyState message="Nenhum pedido em preparo" />
             ) : (
@@ -255,7 +255,7 @@ export default function KitchenPage() {
         </section>
 
         <section
-          className="flex flex-col overflow-hidden rounded-xl p-4"
+          className="animate-fade-in flex flex-col overflow-hidden rounded-xl p-4"
           style={{ backgroundColor: "#D8F3DC" }}
         >
           <div className="mb-3 flex items-center justify-between gap-2">
@@ -275,7 +275,7 @@ export default function KitchenPage() {
             )}
           </div>
 
-          <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
+          <div className="stagger-list flex flex-1 flex-col gap-3 overflow-y-auto">
             {ready.length === 0 ? (
               <EmptyState message="Nenhum pedido finalizado" />
             ) : (

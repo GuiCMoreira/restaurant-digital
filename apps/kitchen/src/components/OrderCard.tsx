@@ -35,7 +35,7 @@ export default function OrderCard({ order, column, onAction, updating }: OrderCa
 
   return (
     <div
-      className={`flex flex-col gap-3 rounded-lg bg-white p-4 ${column === "ready" ? "opacity-75" : ""}`}
+      className={`flex flex-col gap-3 rounded-lg bg-white p-4 transition-shadow duration-200 hover:shadow-md ${column === "ready" ? "opacity-75" : "animate-slide-in-right"}`}
       style={{ borderLeft: `3px solid ${BORDER_COLOR[column]}` }}
     >
       <div className="flex items-start justify-between">
@@ -51,7 +51,7 @@ export default function OrderCard({ order, column, onAction, updating }: OrderCa
         ))}
       </ul>
 
-      <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ${STATUS_BADGE_CLASS[column]}`}>
+      <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ${STATUS_BADGE_CLASS[column]} ${column === "preparing" ? "animate-pulse-badge" : ""}`}>
         {STATUS_LABEL[column]}
       </span>
 
